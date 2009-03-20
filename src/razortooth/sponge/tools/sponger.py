@@ -35,6 +35,35 @@ import sys
 import os
 import unittest
 
-class sponger:
-    def __init__(self, dirname, reporttype=1):
-        print "Sponging"
+class Sponger:
+    spongeEnv = 0
+    envFile = 0
+    lines = 0
+    def __init__(self):
+        print "sponger is sponging..."
+    def initEnv(self, siteFile):
+        envFile = open(siteFile, 'rU')
+        lines = envFile.readlines()
+        if envFile:
+            # read it in
+            print envFile
+            for line in lines:
+                # Discard comments
+                # split each line into key, tuple
+                if line.index("#", 0) == -1:
+                    line.split('=')
+            envFile.close()
+        else:
+            print "Error: Cannot open file $s" % siteFile
+
+class spongerTests(unittest.TestCase):
+    aSponger = 0
+    def setUp(self):
+        print "Setting up"
+        self.aSponger = Sponger()
+    def testInitEnv(self):
+        self.aSponger.initEnv("/Users/dkords/dev/projects/sponge/examples/spongesite.conf")
+    def tearDown(self):
+        print "tearing down"
+if __name__ == '__main__':
+    unittest.main()
