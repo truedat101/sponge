@@ -36,7 +36,9 @@ import os
 import unittest
 
 class Sponger:
-    spongeEnv = 0
+    spongeProjectEnv = {}
+    spongeDatasourceEnv = {}
+    spongeReportEnv = {}
     envFile = 0
     lines = 0
     def __init__(self):
@@ -50,8 +52,17 @@ class Sponger:
             for line in lines:
                 # Discard comments
                 # split each line into key, tuple
-                if line.index("#", 0) == -1:
-                    line.split('=')
+                if line[0].find("#", 0) == -1:
+                    line = line.split('=')
+                    if line[0].find("project") > -1:
+                        self.spongeProjectEnv[line[0]] = line[1]
+                    elif line[0].find("datasource") > -1:
+                        self.spongeDatasourceEnv[line[0]] = line[1]
+                    elif line[0].find("report") > -1:
+                       self.spongeProjectEnv[line[0]] = line[1]
+                    else:
+                       print "Ignoring env property %s" % line
+
             envFile.close()
         else:
             print "Error: Cannot open file $s" % siteFile
