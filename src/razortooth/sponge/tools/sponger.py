@@ -34,11 +34,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import sys
 import os
 import unittest
+import razortooth.sponge.plugins.GithubDatasourcePlugin
 
 class Sponger:
+
     spongeProjectEnv = {}
     spongeDatasourceEnv = {}
     spongeReportEnv = {}
+    spongeDatasourcePlugins = {}
     envFile = 0
     lines = 0
     def __init__(self):
@@ -68,8 +71,22 @@ class Sponger:
         return (len(self.spongeDatasourceEnv) + len(self.spongeProjectEnv) + len(self.spongeReportEnv))
     def soak(self):
         if (1): # Check for existence of data source plugins
+            plugin = 0
             # Use Default
-
+            # should normally loop through and process all of the data source plugins
+            # and only fail with exit if there are no plugins available
+            # even if plugins don't work, they should return the results with error info
+            #
+            plugin = GithubDatasourcePlugin()
+            self.spongeDatasourcePlugins['GithubDatasourcePlugin':plugin]
+            #
+            # Process data sources
+            #
+            for x in spongeDatasourcePlugins.keys():
+                print "Processing data source"
+        else:
+            print "Couldn't load any plugins for datasources, exiting"
+            sys.exit(1)
 class spongerTests(unittest.TestCase):
     aSponger = 0
     def setUp(self):

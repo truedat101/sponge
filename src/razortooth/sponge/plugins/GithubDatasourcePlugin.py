@@ -3,6 +3,7 @@ import os
 import unittest
 
 class GithubDatasourcePlugin:
+    dataDict = {}
     #
     # TODO: Define Plugin Metadata
     #
@@ -17,7 +18,7 @@ class GithubDatasourcePlugin:
         return {'field1':['watchers','integer']}
     def fetch_data(self):
         print "Fetching data"
-
+        return dataDict
 class githubDatasourcePluginTests(unittest.TestCase):
     def setUp(self):
         print "Setting up"
