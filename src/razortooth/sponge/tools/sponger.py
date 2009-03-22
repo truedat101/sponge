@@ -62,18 +62,17 @@ class Sponger:
                        self.spongeProjectEnv[line[0]] = line[1]
                     else:
                        print "Ignoring env property %s" % line
-
             envFile.close()
         else:
             print "Error: Cannot open file $s" % siteFile
-
+        return (len(self.spongeDatasourceEnv) + len(self.spongeProjectEnv) + len(self.spongeReportEnv))
 class spongerTests(unittest.TestCase):
     aSponger = 0
     def setUp(self):
         print "Setting up"
         self.aSponger = Sponger()
     def testInitEnv(self):
-        self.aSponger.initEnv("/Users/dkords/dev/projects/sponge/examples/spongesite.conf")
+        print "# of props read=%d" % self.aSponger.initEnv("/Users/dkords/dev/projects/sponge/examples/spongesite.conf")
     def tearDown(self):
         print "tearing down"
 if __name__ == '__main__':
