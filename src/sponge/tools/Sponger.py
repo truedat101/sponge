@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 """
-spongerpy
+Sponger.py
 
 Created by David J. Kordsmeier on 2009-01-30.
 Copyright (c) 2009 Razortooth Communications, LLC. All rights reserved.
