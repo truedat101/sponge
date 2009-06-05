@@ -97,4 +97,6 @@ class spongerTests(unittest.TestCase):
     def tearDown(self):
         print "tearing down"
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main() # From within the IDE or from the shell, we'll run tests automatically
+else:
+    pass # Module Imported by another module, which is what we want mostly
