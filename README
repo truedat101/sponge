@@ -1,0 +1,36 @@
+NAME
+  spongex
+
+DESCRIPTION
+
+	The idea behind Project Sponge is to provide some tools to measure an OSS project’s
+	vitality. The concept I will use is similar to an APGAR test when a baby is born. A
+	n APGAR test checks the vitals several times after the birth (at birth, and then throughout
+	the next hour or two of life). For an OSS project, you should be checking what I will call
+	the Project Vitality: The vital stats and data showing how well an OSS project is doing at
+	a given point in time. Since Project Vitality can be a relative measure, it is important to
+	be able to compare the Project Vitality to past measurements. The Vitality Dashboard is the
+	visual report of Project Vitality over time. This is targeted at OSS project leads, and
+	specifically, to help commercial open source types to justify the open source approach to
+	management by promises to track progress using some reasonable metrics for success and signs
+	of life. Ideally, sponge can evolve into a sort of OSS Project Analytics tool.
+
+INSTALL
+      python setup.py install
+  or
+      python setup.py install --prifix=/foo/path (to install under /foo/path, useful for Macs)
+
+USAGE
+	spongex -c=[config file path]
+
+examples:
+
+    * spongex ../../../examples/luffaproject.conf
+
+help: spongex -u
+
+Send comments, suggestions and bug reports to dkords@gmail.com
+
+-- David J. Kordsmeier
+
+
