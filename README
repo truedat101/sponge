@@ -19,6 +19,8 @@ INSTALL
       python setup.py install
   or
       python setup.py install --prifix=/foo/path (to install under /foo/path, useful for Macs)
+  or
+  	  http://docs.python.org/install/index.html
 
 USAGE
 	spongex -c=[config file path]

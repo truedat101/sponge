@@ -84,7 +84,7 @@ class Sponger:
             print "Error: Cannot open file $s" % siteFile
         return (len(self.spongeDatasourceEnv) + len(self.spongeProjectEnv) + len(self.spongeReportEnv))
     def soak(self):
-        if (1): # Check for existence of data source plugins
+        if (len(spongeDatasourcePlugins) > 0): # Check for existence of data source plugins
             plugin = 0
             #
             # Use Default
