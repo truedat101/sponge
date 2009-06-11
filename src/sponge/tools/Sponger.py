@@ -48,7 +48,7 @@ great but I think I can't hang with the flash stuff.  Too many browser problems.
 import sys
 import os
 import unittest
-import razortooth.sponge.plugins.GithubDatasourcePlugin
+import sponge.plugins.GithubDatasourcePlugin
 
 class Sponger:
 
