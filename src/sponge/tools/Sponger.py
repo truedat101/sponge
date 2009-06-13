@@ -55,13 +55,14 @@ class Sponger:
     spongeProjectEnv = {}
     spongeDatasourceEnv = {}
     spongeReportEnv = {}
+    spongeBackingstoreEnv = {}
     spongeDatasourcePlugins = {}
-    envFile = 0
-    lines = 0
+    envFile = 0 # XXX Will I ever need this again after init?  I don't plan to modify the *Env
+
     def __init__(self):
-        print "sponger is sponging..."
-    def initEnv(self, siteFile):
-        envFile = open(siteFile, 'rU')
+        print "sponger is sponging...scrub scrub soak soak"
+    def initEnv(self, projectConfigFilePath):
+        envFile = open(projectConfigFilePath, 'rU')
         lines = envFile.readlines()
         if envFile:
             # read it in
@@ -69,6 +70,9 @@ class Sponger:
             for line in lines:
                 # Discard comments
                 # split each line into key, tuple
+                # XXX Based on luffa issues, need to review best approach
+                # for stripping control characters from the input before
+                # I store them into the *Env
                 if line[0].find("#", 0) == -1:
                     line = line.split('=')
                     if line[0].find("project") > -1:
@@ -77,14 +81,35 @@ class Sponger:
                         self.spongeDatasourceEnv[line[0]] = line[1]
                     elif line[0].find("report") > -1:
                        self.spongeProjectEnv[line[0]] = line[1]
+                    elif line[0].find("backingstore") > -1:
+                       self.spongeProjectEnv[line[0]] = line[1]
                     else:
                        print "Ignoring env property %s" % line
             envFile.close()
+            #
+            # Process plugin keys
+            #
+            # 1. Get the pluginclassname.
+            # 2. Load the Class named in pluginclassname via import
+            #    see reference: http://code.activestate.com/recipes/223972/
+            # 3. Extract the datasource Common Name from the key, and add this
+            #    as the key to spongeDatasourceEnv with a reference to the classname (not the
+            #    fully qualified classname
+            # Of course, if there is some problem loading the class, I think this should bomb
+            # rather than continue trying to load the other plugins.  If you intend to load a
+            # plugin, don't ignore errors loading the plugin.  XXX For now, use this approach
+            # And revisit after major debugging is done
+            for aKey in self.spongeDatasourceEnv.keys():
+                if aKey.find("pluginclassname") > -1:
+                    pluginclassname = self.spongeDatasourceEnv.get(aKey).rstrip()
+
+                    print "add the key to the plugin list"
+
         else:
             print "Error: Cannot open file $s" % siteFile
-        return (len(self.spongeDatasourceEnv) + len(self.spongeProjectEnv) + len(self.spongeReportEnv))
-    def soak(self):
-        if (len(spongeDatasourcePlugins) > 0): # Check for existence of data source plugins
+        return (len(self.spongeDatasourceEnv) + len(self.spongeProjectEnv) + len(self.spongeReportEnv) + len(self.spongeBackingstoreEnv))
+    def soak(self): # XXX What should this return?
+        if (len(self.spongeDatasourcePlugins) > 0): # Check for existence of data source plugins
             plugin = 0
             #
             # Use Default
@@ -93,23 +118,41 @@ class Sponger:
             # even if plugins don't work, they should return error info to stderr/stdout
             # and should not commit results to backing store if any plugin fails.
             #
-            plugin = GithubDatasourcePlugin()
-            self.spongeDatasourcePlugins['GithubDatasourcePlugin':plugin]
+            # Example Plugin init: plugin = GithubDatasourcePlugin()
+            #          self.spongeDatasourcePlugins['GithubDatasourcePlugin':plugin]
             #
             # Process data sources
             #
-            for x in spongeDatasourcePlugins.keys():
+            for datasource in self.spongDatasourcePlugins.keys():
                 print "Processing data source"
         else:
             print "Couldn't load any plugins for datasources, exiting"
             sys.exit(1)
+
+    def dynamicModuleImport(self, modulename):
+        if modulname is not None:
+            try:
+                dmod = __import__(modulename)
+                print "Successfully imported module " + modulename
+            except ImportError:
+                return None
+            return dmod
+
+    def dynamicClassLoad(self, classname):
+        if classname is not None:
+            pass
 class spongerTests(unittest.TestCase):
     aSponger = 0
     def setUp(self):
         print "Setting up"
         self.aSponger = Sponger()
     def testInitEnv(self):
-        print "# of props read=%d" % self.aSponger.initEnv("/Users/dkords/dev/projects/sponge/examples/spongesite.conf")
+        count = self.aSponger.initEnv("../../../examples/spongesite.conf")
+        print "# of props read=%d" % (count)
+        self.assert_(count == 9)
+    def testSoak(self):
+        self.aSponger.initEnv("../../../examples/spongesite.conf")
+        self.aSponger.soak()
     def tearDown(self):
         print "tearing down"
 if __name__ == '__main__':
