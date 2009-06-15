@@ -2,7 +2,7 @@ import sys
 import os
 import unittest
 
-class GithubDatasourcePlugin:
+class Plugin:
     dataDict = {}  # Contains the database of our current result set
                    # XXX It's possible this won't stay around for long if data sets are very
                    # large, in which case we will page them in as needed

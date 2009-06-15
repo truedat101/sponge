@@ -48,7 +48,12 @@ great but I think I can't hang with the flash stuff.  Too many browser problems.
 import sys
 import os
 import unittest
+import string
+import re
+import getopt
+import types
 import sponge.plugins.GithubDatasourcePlugin
+
 
 class Sponger:
 
@@ -90,11 +95,16 @@ class Sponger:
             # Process plugin keys
             #
             # 1. Get the pluginclassname.
-            # 2. Load the Class named in pluginclassname via import
+            # 2. Load the Module and Class named in pluginclassname via __import__
             #    see reference: http://code.activestate.com/recipes/223972/
-            # 3. Extract the datasource Common Name from the key, and add this
-            #    as the key to spongeDatasourceEnv with a reference to the classname (not the
-            #    fully qualified classname
+            #    also: http://www.canonical.org/~kragen/isinstance/
+            #    also: http://www.ibm.com/developerworks/library/l-pyint.html
+            #    also: http://effbot.org/zone/python-getattr.htm
+            #    also: http://www.gamedev.net/community/forums/topic.asp?topic_id=445037
+            #    also: http://docs.python.org/library/new.html
+            #    also: http://diveintopython.org/power_of_introspection/getattr.html#d0e9194
+            # 3. Add the pluginclassname as the key in spongeDatasourcePlugins, so as to avoid
+            #    any namespace collision, and store the Class reference
             # Of course, if there is some problem loading the class, I think this should bomb
             # rather than continue trying to load the other plugins.  If you intend to load a
             # plugin, don't ignore errors loading the plugin.  XXX For now, use this approach
@@ -102,9 +112,10 @@ class Sponger:
             for aKey in self.spongeDatasourceEnv.keys():
                 if aKey.find("pluginclassname") > -1:
                     pluginclassname = self.spongeDatasourceEnv.get(aKey).rstrip()
-
                     print "add the key to the plugin list"
-
+                    pluginmodule = self.dynamicModuleImport(pluginclassname)
+                    pluginClassRef = self.dynamicClassImport(pluginmodule, pluginclassname)
+                    self.spongeDatasourcePlugins[pluginclassname, pluginClassRef]
         else:
             print "Error: Cannot open file $s" % siteFile
         return (len(self.spongeDatasourceEnv) + len(self.spongeProjectEnv) + len(self.spongeReportEnv) + len(self.spongeBackingstoreEnv))
@@ -125,22 +136,33 @@ class Sponger:
             #
             for datasource in self.spongDatasourcePlugins.keys():
                 print "Processing data source"
+
         else:
             print "Couldn't load any plugins for datasources, exiting"
             sys.exit(1)
 
     def dynamicModuleImport(self, modulename):
-        if modulname is not None:
+        if modulename is not None:
             try:
-                dmod = __import__(modulename)
-                print "Successfully imported module " + modulename
+                modulePackageWithClass = string.rsplit(modulename, '.', 1)
+                dmod = __import__(modulePackageWithClass[0], globals(), locals(), [''])
+                sys.modules = dmod
+                print "Successfully imported module " + dmod.__name__
             except ImportError:
                 return None
             return dmod
 
-    def dynamicClassLoad(self, classname):
-        if classname is not None:
-            pass
+    def dynamicClassImport(self, module, className):
+        if module is not None:
+            if className is None:
+                className = "Plugin" # If no classname is given, then default to Plugin
+            try:
+                dclass = getattr(module, className)
+                print "Successfully imported name " + dclass.__name__
+            except ImportError:
+                return None
+            return dclass
+
 class spongerTests(unittest.TestCase):
     aSponger = 0
     def setUp(self):
