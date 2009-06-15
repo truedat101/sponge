@@ -52,7 +52,7 @@ import string
 import re
 import getopt
 import types
-import sponge.plugins.simplegithub
+import sponge.plugins.simplegithub # XXX Drop this
 
 
 class Sponger:
@@ -112,10 +112,10 @@ class Sponger:
             for aKey in self.spongeDatasourceEnv.keys():
                 if aKey.find("pluginclassname") > -1:
                     pluginclassname = self.spongeDatasourceEnv.get(aKey).rstrip()
-                    print "add the key to the plugin list"
                     pluginmodule = self.dynamicModuleImport(pluginclassname)
                     pluginClassRef = self.dynamicClassImport(pluginmodule, pluginclassname)
-                    self.spongeDatasourcePlugins[pluginclassname, pluginClassRef]
+                    print "add the key to the plugin list"
+                    self.spongeDatasourcePlugins[pluginclassname] = pluginClassRef
         else:
             print "Error: Cannot open file $s" % siteFile
         return (len(self.spongeDatasourceEnv) + len(self.spongeProjectEnv) + len(self.spongeReportEnv) + len(self.spongeBackingstoreEnv))
@@ -134,7 +134,7 @@ class Sponger:
             #
             # Process data sources
             #
-            for datasource in self.spongDatasourcePlugins.keys():
+            for datasource in self.spongeDatasourcePlugins.keys():
                 print "Processing data source"
 
         else:
@@ -154,12 +154,14 @@ class Sponger:
 
     def dynamicClassImport(self, module, className):
         if module is not None:
-            if className is None:
+            if className.find(".") > -1:
+                className = (string.rsplit(className, '.', 1))[1]
+            elif className is None:
                 className = "Plugin" # If no classname is given, then default to Plugin
             try:
                 dclass = getattr(module, className)
-                print "Successfully imported name " + dclass.__name__
-            except ImportError:
+                print "Successfully loaded class reference for " + dclass.__name__
+            except AttributeError: # Catch this or just let it fail?
                 return None
             return dclass
 
@@ -171,7 +173,7 @@ class spongerTests(unittest.TestCase):
     def testInitEnv(self):
         count = self.aSponger.initEnv("../../../examples/spongesite.conf")
         print "# of props read=%d" % (count)
-        self.assert_(count == 9)
+        self.assert_(count == 10)
     def testSoak(self):
         self.aSponger.initEnv("../../../examples/spongesite.conf")
         self.aSponger.soak()
