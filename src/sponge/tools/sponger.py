@@ -52,7 +52,7 @@ import string
 import re
 import getopt
 import types
-import sponge.plugins.GithubDatasourcePlugin
+import sponge.plugins.simplegithub
 
 
 class Sponger:
@@ -181,3 +181,4 @@ if __name__ == '__main__':
     unittest.main() # From within the IDE or from the shell, we'll run tests automatically
 else:
     pass # Module Imported by another module, which is what we want mostly
+
