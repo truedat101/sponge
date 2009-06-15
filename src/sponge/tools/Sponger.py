@@ -44,6 +44,7 @@ http://www.liquidx.net/plotkit/
 There is also Open Flash Charts http://teethgrinder.co.uk/open-flash-chart/  which look
 great but I think I can't hang with the flash stuff.  Too many browser problems.
 
+Don't forget to keep it real with PEP0008...http://www.python.org/dev/peps/pep-0008/
 """
 import sys
 import os
