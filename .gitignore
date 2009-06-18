@@ -5,5 +5,3 @@
 *.pyc
 #*#
 .DS_Store
-.project
-.pydevproject
