@@ -1,5 +1,6 @@
 import sys
 import os
+import subprocess
 import unittest
 
 # XXX This should extend a base class defining the basic method signatures required
@@ -28,29 +29,50 @@ class GithubDatasource:
                      # common config file used for the project and allow all plugins to
                      # share the use of the workDir
 
+    binPath = "/usr/bin" # where to find the git binaries
+
     #
     # TODO: Define Plugin Metadata
     #
     # At this point in time, the github api is limited.  I am trying to find out if there are
     # more private apis that can be used.
     #
-    def __init__(self, ):
+    def __init__(self, projectdict):
         print "Init GithubDatasourcePlugin..."
         #
         # TODO: Initialize Plugin Metadata
         #
+        self.workDir = projectdict['project.work.dir']
+        self.binPath = projectdict['project.host.binarypath']
+        print "initialized workDir variable = " + self.workDir
+        print "initialized binPath = " + self.binPath
     def get_plugin_metadata(self):
-        return {'guid':1,'name':'GithubDataSourcePlugin', 'license':'gplv3'}
+        return {'guid':1,'name':'GithubDatasource', 'license':'gplv3'}
     def get_datasource_metadata(self):
         return {'field1':['watchers','integer']}
-    def fetch_data(self, gitcloneurl):
+    def fetch_data(self, plugindict):
         print "Fetching data"
-        os.execv("git", ["clone", gitcloneurl, workDir + "g/ithubdatasource.git"])
-        os.chdir(workDir + "/githubdatasource.git")
-        f = os.popen('git rev-list --all --reverse')
-        dataDict["totalcommits"] = len(f);
-        os.rmdir(workDir + "/githubdatasource.git")
-        return dataDict
+        if plugindict is not None:
+            gitcloneurl = plugindict['datasource.github.scm.uri']
+        os.chdir(self.workDir)
+        # Really need to decide if the host PATH should be used
+        # or whether to pass this in as an argument
+        print "about to run %s %s %s" %(self.binPath, gitcloneurl, self.workDir)
+        subprocess.check_call([self.binPath + "/git", "clone", gitcloneurl, self.workDir + "/githubdatasource.git"])
+        os.chdir(self.workDir + "/githubdatasource.git")
+        commitCount = subprocess.call([self.binPath + "/git", "rev-list","--all","--reverse", ">", "/tmp/gitcommits.out"])
+        # commitfile = os.open(self.workDir + "/githubdatasource.git/gitcommits.out", 'rU')
+        # lines = commitFile.readlines()
+        # if lines:
+        #     self.dataDict["totalcommits"] = len(lines);
+        # os.close(commitFile)
+        self.dataDict["totalcommits"] = commitCount
+
+        # XXX This won't work unless the directory in question is empty
+        # See: http://docs.python.org/library/os.html#os.rmdir
+        # os.rmdir(self.workDir + "/githubdatasource.git")
+        print self.dataDict
+        return self.dataDict
 class githubDatasourcePluginTests(unittest.TestCase):
     def setUp(self):
         print "Setting up"

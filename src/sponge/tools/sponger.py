@@ -52,6 +52,7 @@ import string
 import re
 import getopt
 import types
+import new
 import sponge.plugins.simplegithub # XXX Drop this
 
 
@@ -81,13 +82,13 @@ class Sponger:
                 if line[0].find("#", 0) == -1:
                     line = line.split('=')
                     if line[0].find("project") > -1:
-                        self.spongeProjectEnv[line[0]] = line[1]
+                        self.spongeProjectEnv[line[0]] = line[1].rstrip()
                     elif line[0].find("datasource") > -1:
-                        self.spongeDatasourceEnv[line[0]] = line[1]
+                        self.spongeDatasourceEnv[line[0]] = line[1].rstrip()
                     elif line[0].find("report") > -1:
-                       self.spongeProjectEnv[line[0]] = line[1]
+                       self.spongeProjectEnv[line[0]] = line[1].rstrip()
                     elif line[0].find("backingstore") > -1:
-                       self.spongeProjectEnv[line[0]] = line[1]
+                       self.spongeProjectEnv[line[0]] = line[1].rstrip()
                     else:
                        print "Ignoring env property %s" % line
             envFile.close()
@@ -114,14 +115,14 @@ class Sponger:
                     pluginclassname = self.spongeDatasourceEnv.get(aKey).rstrip()
                     pluginmodule = self.dynamicModuleImport(pluginclassname)
                     pluginClassRef = self.dynamicClassImport(pluginmodule, pluginclassname)
-                    print "add the key to the plugin list"
+                    print "add the key to the plugin list for key " + pluginclassname + " = " + pluginClassRef.__name__
                     self.spongeDatasourcePlugins[pluginclassname] = pluginClassRef
         else:
             print "Error: Cannot open file $s" % siteFile
         return (len(self.spongeDatasourceEnv) + len(self.spongeProjectEnv) + len(self.spongeReportEnv) + len(self.spongeBackingstoreEnv))
     def soak(self): # XXX What should this return?
         if (len(self.spongeDatasourcePlugins) > 0): # Check for existence of data source plugins
-            plugin = 0
+            fooPlugin = 0
             #
             # Use Default
             # should normally loop through and process all of the data source plugins
@@ -134,9 +135,17 @@ class Sponger:
             #
             # Process data sources
             #
-            for datasource in self.spongeDatasourcePlugins.keys():
-                print "Processing data source"
-
+            for datasourceKey in self.spongeDatasourcePlugins.keys():
+                datasource = self.spongeDatasourcePlugins[datasourceKey]
+                # print "Processing data source" + datasourceKey + " and datasource = " +
+                # fooPlugin = datasource.__init__(self)
+                fooPlugin = new.instance(datasource)
+                fooPlugin.__init__(self.spongeProjectEnv)
+                metadata = fooPlugin.get_plugin_metadata()
+                print metadata
+                rowResults = fooPlugin.fetch_data(self.spongeDatasourceEnv)
+                print rowResults
+                print fooPlugin
         else:
             print "Couldn't load any plugins for datasources, exiting"
             sys.exit(1)
@@ -173,7 +182,7 @@ class spongerTests(unittest.TestCase):
     def testInitEnv(self):
         count = self.aSponger.initEnv("../../../examples/spongesite.conf")
         print "# of props read=%d" % (count)
-        self.assert_(count == 10)
+        self.assert_(count == 13)
     def testSoak(self):
         self.aSponger.initEnv("../../../examples/spongesite.conf")
         self.aSponger.soak()
