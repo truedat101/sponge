@@ -1,3 +1,35 @@
+#!/usr/bin/env python
+# encoding: utf-8
+#
+# simplegithub.py
+#
+#Created by David J. Kordsmeier on 2009-01-30.
+#Copyright (c) 2009 Razortooth Communications, LLC. All rights reserved.
+#
+#Redistribution and use in source and binary forms, with or without modification,
+#are permitted provided that the following conditions are met:
+#
+#    * Redistributions of source code must retain the above copyright notice,
+#      this list of conditions and the following disclaimer.
+#
+#    * Redistributions in binary form must reproduce the above copyright notice,
+#      this list of conditions and the following disclaimer in the documentation
+#      and/or other materials provided with the distribution.
+#
+#    * Neither the name of Razortooth Communications, LLC, nor the names of its
+#      contributors may be used to endorse or promote products derived from this
+#      software without specific prior written permission.
+#
+#THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+#ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+#WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+#DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+#ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+#(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+#LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+#ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+#(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+#SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import sys
 import os
 import subprocess
@@ -49,8 +81,26 @@ class GithubDatasource:
     def get_plugin_metadata(self):
         return {'guid':1,'name':'GithubDatasource', 'license':'gplv3'}
     def get_datasource_metadata(self):
-        return {'field1':['watchers','integer']}
+        return {'field' + 1:['commits', 'integer'],
+                'field' + 2:['watchers','integer'],
+                'field' + 3:['forks', 'integer'],
+                'field' + 4:['collaborators', 'integer'],
+                'field' + 5:['tagcount', 'integer'],
+                'field' + 6:['branchcount', 'integer'],
+                'field' + 7:['issuecount', 'integer'],
+                'field' + 8:['lastactivity', 'timestamp']
+                }
     def fetch_data(self, plugindict):
+        #
+        # The Github API v2 is available
+        #
+        # However, it is focused on repository metadata for generating
+        # a repo page, but no real ranking or stats.  The choice to use
+        # the api, or use a local copy of the remote, or both.
+        # For this one, I will grab what I can from the local, and get
+        # what I can from the remote via the api
+        #
+
         print "Fetching data"
         if plugindict is not None:
             gitcloneurl = plugindict['datasource.github.scm.uri']
@@ -60,19 +110,32 @@ class GithubDatasource:
         print "about to run %s %s %s" %(self.binPath, gitcloneurl, self.workDir)
         subprocess.check_call([self.binPath + "/git", "clone", gitcloneurl, self.workDir + "/githubdatasource.git"])
         os.chdir(self.workDir + "/githubdatasource.git")
-        commitCount = subprocess.call([self.binPath + "/git", "rev-list","--all","--reverse", ">", "/tmp/gitcommits.out"])
-        # commitfile = os.open(self.workDir + "/githubdatasource.git/gitcommits.out", 'rU')
-        # lines = commitFile.readlines()
-        # if lines:
-        #     self.dataDict["totalcommits"] = len(lines);
-        # os.close(commitFile)
-        self.dataDict["totalcommits"] = commitCount
+        subprocess.check_call(self.binPath + "/git rev-list --all --reverse 2>&1 | wc -l >" + self.workDir + "/githubdatasource.git/gitcommits.out", shell=True)
+        commitFile = open(self.workDir + "/githubdatasource.git/gitcommits.out", 'rU')
+        if commitFile:
+            lines = commitFile.readlines()
+            if lines:
+                self.dataDict["totalcommits"] = lines[0].lstrip().rstrip()
+                commitFile.close()
 
-        # XXX This won't work unless the directory in question is empty
+        # This won't work unless the directory in question is empty
+        # utility method helps walk through and remove leaf nodes first
         # See: http://docs.python.org/library/os.html#os.rmdir
-        # os.rmdir(self.workDir + "/githubdatasource.git")
+        self.removeDirUtil(self.workDir + "/githubdatasource.git")
+        os.remove(self.workDir + "/githubdatasource.git")
         print self.dataDict
         return self.dataDict
+
+    def removeDirUtil(self, top):
+        # Only do the cleanup inside of the workDir
+        if top.find(self.workDir) > -1:
+            print "Blowing away working dir " + self.workDir
+            for root, dirs, files in os.walk(top, topdown=False):
+                for name in files:
+                    os.remove(os.path.join(root, name))
+                for name in dirs:
+                    os.rmdir(os.path.join(root, name))
+
 class githubDatasourcePluginTests(unittest.TestCase):
     def setUp(self):
         print "Setting up"
