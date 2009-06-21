@@ -33,6 +33,7 @@
 import sys
 import os
 import subprocess
+import urllib2
 import unittest
 
 # XXX This should extend a base class defining the basic method signatures required
@@ -81,8 +82,8 @@ class GithubDatasource:
     def get_plugin_metadata(self):
         return {'guid':1,'name':'GithubDatasource', 'license':'gplv3'}
     def get_datasource_metadata(self):
-        return {'field' + 1:['commits', 'integer'],
-                'field' + 2:['watchers','integer'],
+        return {'field' + 1:['commitcount', 'integer'],
+                'field' + 2:['watchercount','integer'],
                 'field' + 3:['forks', 'integer'],
                 'field' + 4:['collaborators', 'integer'],
                 'field' + 5:['tagcount', 'integer'],
@@ -100,13 +101,25 @@ class GithubDatasource:
         # For this one, I will grab what I can from the local, and get
         # what I can from the remote via the api
         #
-
+        # XXX rename plugindict to something else
+        gitcloneurl = 0
+        githubRepoName = 0
+        githubUsername = 0
+        githubApiURI = 0
         print "Fetching data"
         if plugindict is not None:
-            gitcloneurl = plugindict['datasource.github.scm.uri']
+            print plugindict
+            gitcloneurl = plugindict.get('datasource.github.scm.uri')
+            githubRepoName = plugindict.get('datasource.github.reponame')
+            githubUsername = plugindict.get('datasource.github.username')
+            githubApiURI = plugindict.get('datasource.github.api.uri')
         os.chdir(self.workDir)
-        # Really need to decide if the host PATH should be used
-        # or whether to pass this in as an argument
+        #
+        # field1 - commitcount
+        #
+        # Could probably use github api, it was worth the effort to
+        # do a local clone so we have a general way to query a git
+        # repo
         print "about to run %s %s %s" %(self.binPath, gitcloneurl, self.workDir)
         subprocess.check_call([self.binPath + "/git", "clone", gitcloneurl, self.workDir + "/githubdatasource.git"])
         os.chdir(self.workDir + "/githubdatasource.git")
@@ -115,14 +128,25 @@ class GithubDatasource:
         if commitFile:
             lines = commitFile.readlines()
             if lines:
-                self.dataDict["totalcommits"] = lines[0].lstrip().rstrip()
+                self.dataDict["commitcount"] = lines[0].lstrip().rstrip()
                 commitFile.close()
 
+        #
+        # field2 - watchercount
+        #
+        # curl http://github.com/api/v2/yaml/repos/show/truedat101/sponge
+        #
+        # XXX Need to catch exceptions through here
+        githubapiReq = urllib2.urlopen('http://github.com' + githubApiURI + '/repos/show/' + githubUsername + '/' + githubRepoName)
+        githubapiResp = githubapiReq.read()
+        print githubapiResp
+        # Only clean this up after we are sure we are finished
+        # grabbing data from the local clone
         # This won't work unless the directory in question is empty
         # utility method helps walk through and remove leaf nodes first
         # See: http://docs.python.org/library/os.html#os.rmdir
         self.removeDirUtil(self.workDir + "/githubdatasource.git")
-        os.remove(self.workDir + "/githubdatasource.git")
+        os.rmdir(self.workDir + "/githubdatasource.git")
         print self.dataDict
         return self.dataDict
 

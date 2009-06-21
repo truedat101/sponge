@@ -182,7 +182,7 @@ class spongerTests(unittest.TestCase):
     def testInitEnv(self):
         count = self.aSponger.initEnv("../../../examples/spongesite.conf")
         print "# of props read=%d" % (count)
-        self.assert_(count == 13)
+        self.assert_(count == 16)
     def testSoak(self):
         self.aSponger.initEnv("../../../examples/spongesite.conf")
         self.aSponger.soak()
