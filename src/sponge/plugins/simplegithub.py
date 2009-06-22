@@ -33,6 +33,7 @@
 import sys
 import os
 import subprocess
+import string
 import urllib2
 import unittest
 
@@ -132,14 +133,27 @@ class GithubDatasource:
                 commitFile.close()
 
         #
+        # Use Github API repos
+        #
+        githubapiReq = urllib2.urlopen('http://github.com' + githubApiURI + '/repos/show/' + githubUsername + '/' + githubRepoName)
+
+
+        #
         # field2 - watchercount
         #
         # curl http://github.com/api/v2/yaml/repos/show/truedat101/sponge
         #
         # XXX Need to catch exceptions through here
-        githubapiReq = urllib2.urlopen('http://github.com' + githubApiURI + '/repos/show/' + githubUsername + '/' + githubRepoName)
-        githubapiResp = githubapiReq.read()
-        print githubapiResp
+
+        githubapiResp = [string.strip(elem) for elem in string.rsplit(githubapiReq.read(), '\n')][0]
+        print githubapiResp # XXX Debug output
+        self.dataDict["watchercount"] = [string.lstrip(string.split(elem, ':')[2]) for elem in githubapiResp if elem.find(":watchers") > -1]
+
+        #
+        # field3 - forkcount
+        #
+        self.dataDict["forkcount"] = [string.lstrip(string.split(elem, ':')[2]) for elem in githubapiResp if elem.find(":forks") > -1]
+
         # Only clean this up after we are sure we are finished
         # grabbing data from the local clone
         # This won't work unless the directory in question is empty
