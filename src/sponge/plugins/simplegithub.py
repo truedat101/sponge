@@ -90,7 +90,7 @@ class GithubDatasource:
                 'field' + 5:['tagcount', 'integer'],
                 'field' + 6:['branchcount', 'integer'],
                 'field' + 7:['issuecount', 'integer'],
-                'field' + 8:['lastactivity', 'timestamp']
+                'field' + 8:['lastcommit', 'timestamp']
                 }
     def fetch_data(self, plugindict):
         #
@@ -135,7 +135,6 @@ class GithubDatasource:
         #
         # Use Github API repos
         #
-        print 'calling http://github.com' + githubApiURI + '/repos/show/' + githubUsername + '/' + githubRepoName
         githubapiReq = urllib2.urlopen('http://github.com' + githubApiURI + '/repos/show/' + githubUsername + '/' + githubRepoName)
 
 
@@ -157,20 +156,37 @@ class GithubDatasource:
         #
         # field4 - collaborators
         #
+        githubapiReq = urllib2.urlopen('http://github.com' + githubApiURI + '/repos/show/' + githubUsername + '/' + githubRepoName + '/collaborators')
+        githubapiResp = [string.strip(elem) for elem in string.rsplit(githubapiReq.read(), '\n')]
+        self.dataDict["collaborators"] = len(githubapiResp)-2 # Discard the ---- and the branches: text
 
         #
         # field5 - tagcount
         #
+        githubapiReq = urllib2.urlopen('http://github.com' + githubApiURI + '/repos/show/' + githubUsername + '/' + githubRepoName + '/tags')
+        githubapiResp = [string.strip(elem) for elem in string.rsplit(githubapiReq.read(), '\n')]
+        self.dataDict["tagcount"] = len(githubapiResp)-2 # Discard the ---- and the branches: text
 
         #
         # field6 - branchcount
-        #
+        # curl http://github.com/api/v2/yaml/repos/show/schacon/ruby-git/branches
+        githubapiReq = urllib2.urlopen('http://github.com' + githubApiURI + '/repos/show/' + githubUsername + '/' + githubRepoName + '/branches')
+        githubapiResp = [string.strip(elem) for elem in string.rsplit(githubapiReq.read(), '\n')]
+        self.dataDict["branchcount"] = len(githubapiResp)-2 # Discard the ---- and the branches: text
 
+        #
         # field7 - issuecount
         #
         githubapiReq = urllib2.urlopen('http://github.com' + githubApiURI + '/issues/list/' + githubUsername + '/' + githubRepoName + '/open')
         githubapiResp = [string.strip(elem) for elem in string.rsplit(githubapiReq.read(), '\n')]
         self.dataDict["issuecount"] = len([elem for elem in githubapiResp if elem.find("number:") > -1])
+
+        #
+        # field8 - lastcommit
+        # XXX This is kind of sucky and inefficient, and only shows commits on master
+        githubapiReq = urllib2.urlopen('http://github.com' + githubApiURI + '/commits/list/' + githubUsername + '/' + githubRepoName + '/master')
+        githubapiResp = [string.strip(elem) for elem in string.rsplit(githubapiReq.read(), '\n')]
+        self.dataDict["lastcommit"] = string.split([elem for elem in githubapiResp if elem.find("committed_date:") > -1][0])[1] # XXX This returns a double quoted string...fix it!
 
         # Only clean this up after we are sure we are finished
         # grabbing data from the local clone
