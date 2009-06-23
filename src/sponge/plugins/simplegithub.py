@@ -135,6 +135,7 @@ class GithubDatasource:
         #
         # Use Github API repos
         #
+        print 'calling http://github.com' + githubApiURI + '/repos/show/' + githubUsername + '/' + githubRepoName
         githubapiReq = urllib2.urlopen('http://github.com' + githubApiURI + '/repos/show/' + githubUsername + '/' + githubRepoName)
 
 
@@ -144,15 +145,32 @@ class GithubDatasource:
         # curl http://github.com/api/v2/yaml/repos/show/truedat101/sponge
         #
         # XXX Need to catch exceptions through here
-
-        githubapiResp = [string.strip(elem) for elem in string.rsplit(githubapiReq.read(), '\n')][0]
+        githubapiResp = [string.strip(elem) for elem in string.rsplit(githubapiReq.read(), '\n')]
         print githubapiResp # XXX Debug output
-        self.dataDict["watchercount"] = [string.lstrip(string.split(elem, ':')[2]) for elem in githubapiResp if elem.find(":watchers") > -1]
+        self.dataDict["watchercount"] = [string.lstrip(string.split(elem, ':')[2]) for elem in githubapiResp if elem.find(":watchers") > -1][0]
 
         #
         # field3 - forkcount
         #
-        self.dataDict["forkcount"] = [string.lstrip(string.split(elem, ':')[2]) for elem in githubapiResp if elem.find(":forks") > -1]
+        self.dataDict["forkcount"] = [string.lstrip(string.split(elem, ':')[2]) for elem in githubapiResp if elem.find(":forks") > -1][0]
+
+        #
+        # field4 - collaborators
+        #
+
+        #
+        # field5 - tagcount
+        #
+
+        #
+        # field6 - branchcount
+        #
+
+        # field7 - issuecount
+        #
+        githubapiReq = urllib2.urlopen('http://github.com' + githubApiURI + '/issues/list/' + githubUsername + '/' + githubRepoName + '/open')
+        githubapiResp = [string.strip(elem) for elem in string.rsplit(githubapiReq.read(), '\n')]
+        self.dataDict["issuecount"] = len([elem for elem in githubapiResp if elem.find("number:") > -1])
 
         # Only clean this up after we are sure we are finished
         # grabbing data from the local clone
