@@ -54,6 +54,8 @@ class DictDB(dict):
                 self.load(file)
             finally:
                 file.close()
+        else:
+            print "can't open" # XXX Should fail properly
         self.update(*args, **kwds)
 
     def sync(self):
@@ -128,8 +130,6 @@ class dictdbTests(unittest.TestCase):
         self.assert_(f is not None)
         print (f.read())
         f.close()
-
-
 if __name__ == '__main__':
     unittest.main() # From within the IDE or from the shell, we'll run tests automatically
 else:

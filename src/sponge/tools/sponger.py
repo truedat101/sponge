@@ -53,8 +53,8 @@ import re
 import getopt
 import types
 import new
-import sponge.plugins.simplegithub # XXX Drop this
-
+import datetime
+from sponge.utils.dictdb import dbopen
 
 class Sponger:
 
@@ -144,8 +144,16 @@ class Sponger:
                 metadata = fooPlugin.get_plugin_metadata()
                 print metadata
                 rowResults = fooPlugin.fetch_data(self.spongeDatasourceEnv)
-                print rowResults
-                print fooPlugin
+                os.chdir(self.spongeProjectEnv['project.db.dir'])
+                db = dbopen(datasourceKey + '.csv', flag='c', format='csv')
+                if (db is not None):
+                    # XXX May want to change how this mapped so that each key/value pair is comma-sep
+                    db[datetime.datetime.utcnow()] = rowResults # Warning: time is in UTC, need to convert when displaying
+                    db.close()
+                else:
+                    print "Couldn't create or open DB name = " + datasource + '.csv'
+                print rowResults # XXX Debug
+                print fooPlugin # XXX Debug
         else:
             print "Couldn't load any plugins for datasources, exiting"
             sys.exit(1)
@@ -182,7 +190,7 @@ class spongerTests(unittest.TestCase):
     def testInitEnv(self):
         count = self.aSponger.initEnv("../../../examples/spongesite.conf")
         print "# of props read=%d" % (count)
-        self.assert_(count == 16)
+        self.assert_(count == 17)
     def testSoak(self):
         self.aSponger.initEnv("../../../examples/spongesite.conf")
         self.aSponger.soak()
