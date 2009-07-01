@@ -1,0 +1,1 @@
+__all__ = ["sponger"] # support for from module import *

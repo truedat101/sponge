@@ -1,0 +1,1 @@
+__all__ = ["simplegithub.py"] # support for from module import *

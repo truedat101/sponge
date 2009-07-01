@@ -1,0 +1,1 @@
+__all__ = ["dictdb"] # support for from module import *

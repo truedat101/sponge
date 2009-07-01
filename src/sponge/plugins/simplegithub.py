@@ -81,16 +81,16 @@ class GithubDatasource:
         print "initialized workDir variable = " + self.workDir
         print "initialized binPath = " + self.binPath
     def get_plugin_metadata(self):
-        return {'guid':1,'name':'GithubDatasource', 'license':'gplv3'}
+        return {'guid':1,'name':'GithubDatasource', 'license':'bsd 3-clause'}
     def get_datasource_metadata(self):
-        return {'field' + 1:['commitcount', 'integer'],
-                'field' + 2:['watchercount','integer'],
-                'field' + 3:['forks', 'integer'],
-                'field' + 4:['collaborators', 'integer'],
-                'field' + 5:['tagcount', 'integer'],
-                'field' + 6:['branchcount', 'integer'],
-                'field' + 7:['issuecount', 'integer'],
-                'field' + 8:['lastcommit', 'timestamp']
+        return {'field' + repr(1):['commitcount', 'integer'],
+                'field' + repr(2):['watchercount','integer'],
+                'field' + repr(3):['forks', 'integer'],
+                'field' + repr(4):['collaborators', 'integer'],
+                'field' + repr(5):['tagcount', 'integer'],
+                'field' + repr(6):['branchcount', 'integer'],
+                'field' + repr(7):['issuecount', 'integer'],
+                'field' + repr(8):['lastcommit', 'timestamp']
                 }
     def fetch_data(self, plugindict):
         #
