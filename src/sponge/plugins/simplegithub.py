@@ -36,9 +36,11 @@ import subprocess
 import string
 import urllib2
 import unittest
+from sponge.plugins import pluginbase
+from sponge.tools import sponger
 
 # XXX This should extend a base class defining the basic method signatures required
-class GithubDatasource:
+class GithubDatasource(pluginbase.PluginBase):
     dataDict = {}  # Contains the database of our current result set
                    # XXX It's possible this won't stay around for long if data sets are very
                    # large, in which case we will page them in as needed
@@ -209,10 +211,25 @@ class GithubDatasource:
                     os.rmdir(os.path.join(root, name))
 
 class githubDatasourcePluginTests(unittest.TestCase):
+    aSponger = 0
+    aDatasource = 0
     def setUp(self):
         print "Setting up"
-    def testInitEnv(self):
-        print "foo"
+        self.aSponger = sponger.Sponger()
+        count = self.aSponger.initEnv("../../../examples/spongesite.conf")
+        self.aDatasource = GithubDatasource(self.aSponger.spongeProjectEnv)
+    def testGetPluginMetadata(self):
+        pluginMetadataDict = self.aDatasource.get_plugin_metadata()
+        self.assert_(pluginMetadataDict is not None)
+        print pluginMetadataDict
+    def testGetDatasourceMetadata(self):
+        datasourceMetadataDict = self.aDatasource.get_datasource_metadata()
+        self.assert_(datasourceMetadataDict is not None)
+        print datasourceMetadataDict
+    def testFetchData(self):
+        dataDict = self.aDatasource.fetch_data(self.aSponger.spongeDatasourceEnv)
+        self.assert_(dataDict is not None)
+        print dataDict
     def tearDown(self):
         print "tearing down"
 if __name__ == '__main__':
