@@ -79,8 +79,8 @@ class Sponger:
                 # XXX Based on luffa issues, need to review best approach
                 # for stripping control characters from the input before
                 # I store them into the *Env
-                if line[0].find("#", 0) == -1:
-                    line = line.split('=')
+                if line[0].find("#", 0) == -1: # XXX This probably is a bug...would throw out any line containing a comment, even an inline comment, which should be valid
+                    line = line.split('=') # XXX There is nothing wrong with this, but I don't know what the behavior is for split when a line ends with an =, which should just be an edge case, but I still need to cover this
                     if line[0].find("project") > -1:
                         self.spongeProjectEnv[line[0]] = line[1].rstrip()
                     elif line[0].find("datasource") > -1:
@@ -90,7 +90,8 @@ class Sponger:
                     elif line[0].find("backingstore") > -1:
                        self.spongeProjectEnv[line[0]] = line[1].rstrip()
                     else:
-                       print "Ignoring env property %s" % line
+                       # print "Ignoring env property %s" % line
+                       None
             envFile.close()
             #
             # Process plugin keys

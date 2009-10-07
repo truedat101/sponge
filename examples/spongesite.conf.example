@@ -1,0 +1,92 @@
+##################################
+# Sample Sponge Site Configuration
+##################################
+
+#
+# Project Setup 
+# Every project is assumed to have a single SCM source.  Note: this doesn't hold true for more complex projects relying on
+# external projects, or projects hosting one or more nested projects (such as Android).\
+# Hello Cabbages...a few things to watch out for when configuring
+# * Don't end a line with =, I am splitting lines along =, which presumably gets messed up if u do this
+#
+#
+project.fullname=Project Sponge 
+project.scm.uri=git://github.com/truedat101/sponge.git 
+project.work.dir=/tmp
+project.db.dir=/tmp
+project.host.binarypath=/sw/bin
+
+# sponge.project.scm.browser=github
+# sponge.project.community.name=sponge
+# sponge.project.community.url=http://github.com/truedat101/sponge/tree/master
+# project.founded gives the project an origin in history
+project.founded=2009,03,17 
+
+#
+# Data Source Setup
+# 
+
+#
+# Plugin -> Github
+#
+datasource.github.pluginclassname=sponge.plugins.simplegithub.GithubDatasource
+datasource.github.username=truedat101
+datasource.github.reponame=sponge
+datasource.github.home=http://github.com/truedat101/sponge
+datasource.github.scm.uri=git://github.com/truedat101/sponge.git
+datasource.github.api.uri=/api/v2/yaml
+datasource.github.apikey=FOO2
+
+#
+# Plugin -> Freshmeat.net
+#
+datasource.freshmeat.pluginclassname=sponge.plugins.simplefreshmeat.FreshmeatDotNetDatasource
+datasource.freshmeat.api.root.uri=http://freshmeat.net
+# XXX You need to put your own API Key
+datasource.freshmeat.apikey=FOO
+# XXX Put your project name here, use opencds for now :)
+datasource.freshmeat.permalink=opencds 
+
+#
+# Plugin -> SEOMindshare
+# 
+datasource.seomindshare.pluginclassname=sponge.plugins.simpleseomindshare.SEOMindshareDatasource
+# XXX use xmpp.org for the default domain test case, you should put your project site domain here
+datasource.seomindshare.query.1=url http://xmpp.com
+# XXX use xmpp for the default search term query, 
+# Should probably have a query for each portal, we currently only support one query, easy to change later
+datasource.seomindshare.query.2=v 1.0 q link:http://www.yahoo.com/ callback processResults
+# XXX since search returns false positives, study the query and change this % to match your confidence in results 
+datasource.seomindshare.query.2.confidence=0.9
+# XXX use xmpp for the default search term query, 
+# Should probably have a query for each portal, we currently only support one query, easy to change later
+datasource.seomindshare.query.3=v 1.0 q +"xmpp,jabber" callback processResults
+# XXX since search returns false positives, study the query and change this % to match your confidence in results 
+datasource.seomindshare.query.3.confidence=0.9
+datasource.seomindshare.google.pagerank.api.root.uri=http://seopen.com/seopen-tools/pagerank.php
+datasource.seomindshare.google.search.api.root.uri=http://ajax.googleapis.com/ajax/services/search/web
+datasource.seomindshare.yahoo.api.root.uri=http://search.yahooapis.com/SiteExplorerService/V1/inlinkData
+datasource.seomindshare.yahoo.bossapi.root.uri=http://boss.yahooapis.com/ysearch/web/v1/
+datasource.seomindshare.yahoo.query.1=appid YOURBOSSAPPIDKEYHERE query http://www.xmpp.org results 2
+datasource.seomindshare.yahoo.query.2a=xmpp
+datasource.seomindshare.yahoo.query.2b=appid YOURBOSSAPPIDKEYHERE format xml
+datasource.seomindshare.bing.api.root.uri=http://api.bing.net/json.aspx
+datasource.seomindshare.bing.query.1=AppId YOURAPPIDHERE Version 2.2 Market en-US Query xmpp Sources web Web.Count 1 JsonType raw
+datasource.seomindshare.alexa.api.root.uri=http://www.alexa.com/siteinfo/
+datasource.seomindshare.alexa.query.1=www.xmpp.org
+
+
+
+#
+# Backing Store
+# XXX Need to impelement
+backingstore.db.uri=XXX TODO Decide on default backing store, maybe a CSV
+backingstore.backup.uri=XXX TODO Decide how to handle backup of your backing store, probably a timestamped copy
+
+#
+#  Report Setup
+#  XXX Need to implement
+report.output.text.file=spongesitereport.txt
+report.output.stdout=TRUE
+
+

@@ -18,7 +18,7 @@ DESCRIPTION
 INSTALL
       python setup.py install
   or
-      python setup.py install --prifix=/foo/path (to install under /foo/path, useful for Macs)
+      python setup.py install --prefix=/foo/path (to install under /foo/path, useful for Macs)
   or
   	  http://docs.python.org/install/index.html
 
