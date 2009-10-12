@@ -64,7 +64,7 @@ class GithubDatasource(pluginbase.PluginBase):
     workDir = "/tmp" # XXX This won't work on winders.  Shux.  Need to maybe move this to the
                      # common config file used for the project and allow all plugins to
                      # share the use of the workDir
-
+    baseDir = os.path.abspath(os.curdir) # The current work dir on execution
     binPath = "/usr/bin" # where to find the git binaries
 
     #
@@ -82,6 +82,7 @@ class GithubDatasource(pluginbase.PluginBase):
         self.binPath = projectdict['project.host.binarypath']
         print "initialized workDir variable = " + self.workDir
         print "initialized binPath = " + self.binPath
+        print "initialzed baseDir = %s"%(self.baseDir)
     def get_plugin_metadata(self):
         return {'guid':1,'name':'GithubDatasource', 'license':'bsd 3-clause'}
     def get_datasource_metadata(self):
@@ -188,7 +189,7 @@ class GithubDatasource(pluginbase.PluginBase):
         # XXX This is kind of sucky and inefficient, and only shows commits on master
         githubapiReq = urllib2.urlopen('http://github.com' + githubApiURI + '/commits/list/' + githubUsername + '/' + githubRepoName + '/master')
         githubapiResp = [string.strip(elem) for elem in string.rsplit(githubapiReq.read(), '\n')]
-        self.dataDict["lastcommit"] = string.split([elem for elem in githubapiResp if elem.find("committed_date:") > -1][0])[1] # XXX This returns a double quoted string...fix it!
+        self.dataDict["lastcommit"] = string.replace(string.split([elem for elem in githubapiResp if elem.find("committed_date:") > -1][0])[1], '"', '')
 
         # Only clean this up after we are sure we are finished
         # grabbing data from the local clone
@@ -197,6 +198,8 @@ class GithubDatasource(pluginbase.PluginBase):
         # See: http://docs.python.org/library/os.html#os.rmdir
         self.removeDirUtil(self.workDir + "/githubdatasource.git")
         os.rmdir(self.workDir + "/githubdatasource.git")
+        print "self.baseDir = %s"%(self.baseDir)
+        os.chdir(self.baseDir) # Do this to get back to our original working directory
         print self.dataDict
         return self.dataDict
 
