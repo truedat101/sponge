@@ -55,7 +55,7 @@ import types
 import new
 import datetime
 from sponge.utils.dictdb import dbopen
-
+from sponge.utils.dictdb import dbexists
 class Sponger:
 
     spongeProjectEnv = {}
@@ -135,7 +135,10 @@ class Sponger:
             #          self.spongeDatasourcePlugins['GithubDatasourcePlugin':plugin]
             #
             # Process data sources
-            #
+            # 1. get the data source instance
+            # 2. get the results
+            # 3. get the metadata
+            # 4. persist the results into various formats
             for datasourceKey in self.spongeDatasourcePlugins.keys():
                 datasource = self.spongeDatasourcePlugins[datasourceKey]
                 # print "Processing data source" + datasourceKey + " and datasource = " +
@@ -143,16 +146,58 @@ class Sponger:
                 fooPlugin = new.instance(datasource)
                 fooPlugin.__init__(self.spongeProjectEnv)
                 metadata = fooPlugin.get_plugin_metadata()
+                ds_col_labels = fooPlugin.get_datasource_metadata()
                 print metadata
                 rowResults = fooPlugin.fetch_data(self.spongeDatasourceEnv)
+                dbname = datasourceKey
+
                 os.chdir(self.spongeProjectEnv['project.db.dir'])
-                db = dbopen(datasourceKey + '.csv', flag='c', format='csv')
-                if (db is not None):
-                    # XXX May want to change how this mapped so that each key/value pair is comma-sep
-                    db[datetime.datetime.utcnow()] = rowResults # Warning: time is in UTC, need to convert when displaying
+
+                #
+                # XXX: TODO This section of persistence approaches should be handled by configurable
+                # plugins
+                # For now, inline each approach
+                #
+                import csv
+
+                #
+                # Method 1
+                # Persist to a .csv with results in row records, human readable
+                # This yields one .csv per Plugin
+                isNewDB = False
+                if (dbexists(dbname + ".csv") is not True):
+                    isNewDB = True
+                fdb = open(dbname + ".csv", 'ab')
+                rowdata = None
+                if isNewDB:
+                    rowdata = "Date"
+                    for label in ds_col_labels.values():
+                        rowdata = rowdata + ",%s"%(label)
+                    fdb.write(rowdata + "\n")
+                rowdata = datetime.datetime.now().ctime() # This needs to be ISO
+                print "time now is %s"%(rowdata)
+                for data in rowResults.values():
+                    rowdata = rowdata + ",%s"%(data)
+                fdb.write(rowdata + "\n")
+                fdb.close()
+
+                #
+                # Method 2
+                # For each series, put into a separate csv file
+                # format should be
+                # ISO DateTime Data, row data
+                # This yields 1 .csv per Plugin-Column combo
+                # Naming follows this  convension
+                # for label in ds_col_labels.value():
+                for key,value in rowResults.items():
+                    db = dbopen(dbname + "." + key + ".csv", flag='c', format='csv')
+                    if (db is not None):
+                        # XXX May want to change how this mapped so that each key/value pair is comma-sep
+                        db[datetime.datetime.isoformat(datetime.datetime.now())] = value # Warning: time is in ISO, need to convert when displaying
+                        db.close()
+                    else:
+                        print "Couldn't create or open DB name = " + dbname + "." + key + '.csv'
                     db.close()
-                else:
-                    print "Couldn't create or open DB name = " + datasource + '.csv'
                 print rowResults # XXX Debug
                 print fooPlugin # XXX Debug
         else:

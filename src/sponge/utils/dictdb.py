@@ -105,6 +105,9 @@ class DictDB(dict):
                 pass
         raise ValueError('File not in recognized format')
 
+def dbexists(filename):
+    return os.access(filename, os.F_OK)
+
 
 def dbopen(filename, flag=None, mode=None, format=None):
     return DictDB(filename, flag, mode, format)
@@ -118,7 +121,7 @@ class dictdbTests(unittest.TestCase):
         import random
         os.chdir('/tmp')
         print(os.getcwd())
-        s = dbopen('tmp.shl', 'c', format='csv')
+        s = dbopen('tmp.shl', flag='c', format='csv')
         self.assert_(s is not None)
         print(s, 'start')
         s['abc'] = '123'
@@ -130,6 +133,16 @@ class dictdbTests(unittest.TestCase):
         self.assert_(f is not None)
         print (f.read())
         f.close()
+        s = dbexists('tmp.shl')
+        self.assert_(s is True)
+        s = dbexists('tmp2.shl')
+        self.assert_(s is not True)
+        t = dbopen('tmp3.csv', flag='c', format='csv')
+        self.assert_(t is not None)
+        t['foo'] = 1
+        t['foo2'] = 2
+        t['foo3'] = 3
+        t.close()
 if __name__ == '__main__':
     unittest.main() # From within the IDE or from the shell, we'll run tests automatically
 else:
