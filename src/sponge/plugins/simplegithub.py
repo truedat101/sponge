@@ -86,14 +86,14 @@ class GithubDatasource(pluginbase.PluginBase):
     def get_plugin_metadata(self):
         return {'guid':1,'name':'GithubDatasource', 'license':'bsd 3-clause'}
     def get_datasource_metadata(self):
-        return {'field' + repr(1):['commitcount', 'integer'],
-                'field' + repr(2):['watchercount','integer'],
-                'field' + repr(3):['forks', 'integer'],
-                'field' + repr(4):['collaborators', 'integer'],
-                'field' + repr(5):['tagcount', 'integer'],
-                'field' + repr(6):['branchcount', 'integer'],
-                'field' + repr(7):['issuecount', 'integer'],
-                'field' + repr(8):['lastcommit', 'timestamp']
+        return {1:['commitcount', 'integer'],
+                2:['watchercount','integer'],
+                3:['forkcount', 'integer'],
+                4:['collaborators', 'integer'],
+                5:['tagcount', 'integer'],
+                6:['branchcount', 'integer'],
+                7:['issuecount', 'integer'],
+                8:['lastcommit', 'timestamp']
                 }
     def fetch_data(self, plugindict):
         #
@@ -152,7 +152,7 @@ class GithubDatasource(pluginbase.PluginBase):
         self.dataDict["watchercount"] = [string.lstrip(string.split(elem, ':')[2]) for elem in githubapiResp if elem.find(":watchers") > -1][0]
 
         #
-        # field3 - forkcount
+        # field3 - forkcount XXX This might be a problem.  Need to see if this forkcount is working
         #
         self.dataDict["forkcount"] = [string.lstrip(string.split(elem, ':')[2]) for elem in githubapiResp if elem.find(":forks") > -1][0]
 

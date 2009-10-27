@@ -75,6 +75,47 @@ datasource.seomindshare.bing.query.1=AppId YOURAPPIDHERE Version 2.2 Market en-U
 datasource.seomindshare.alexa.api.root.uri=http://www.alexa.com/siteinfo/
 datasource.seomindshare.alexa.query.1=www.xmpp.org
 
+#
+# Publisher
+# 
+# We are implementing the initial Publisher with a default to http://timetric.com
+# 
+# XXX: We only support one timetric app at the moment...is there a use case for needing more than one?
+#
+# Setup Steps
+# ===========
+# Note: You must setup your timetric service before using the publisher.  Sorry, you really do have to 
+# read this instructions below.  If it is too much trouble, you may want to skip using it.
+# XXX I may provide a working sample at some point.
+# ===========
+# 1. get an API Token from timetric (it's free)
+# 2. Go onto timetric and upload your initial series data (XXX Is this ok...we could create programatically 
+# but the advantages are unclear.  You still need to pull your series ID for each series, which we could do. 
+# Maybe do this for V2.).  Note, the series ID is the last path on the URL to your data series.  These are unique.
+# 3. For each series you upload, add the series ID to the series Dictionary below.  This may seem confusing, but I racked
+# my brain for awhile on this (at least 10 minutes), and decided the easiest way would be to put the series into 
+# the datasource class as part of the dictionary in get_datasource_metadata().  This is fine, but not really.  It
+# is problematic to do the configuration inside of the source, especially if you are tracking changes to the project
+# on github.com.  Instead of this, use the ordering defined in the implementation for each datasource inside of the
+# get_datasource_metadata() method.  This gives you a definition of the expected order for each datasource field 
+# we are planning to make into a data series.  This is still to complicated for my liking, but if you want it
+# to work, this is what you have to do.  I would rather timetric allowed me to reference my data series by a 
+# URI /USERID/SERIESID where the SERIESID is up to me.  I could then name the series using the plugin GUID + 
+# field ID or field Name.  I may suggest this as an RFE to timetric.  
+# 4. Run a periodic script to call sponge.tools.sponger.squeeze().  The frequency of this script should match
+# the frequency <= frequency of data point samples.  So if you sample your data points every day, then you can 
+# run daily or just weekly.  The frequency depends on how current you want your timetric data to be.
+# 5. Go online to your timetric account and check your dashboard.  You should see your latest data series sets
+# published per your last run of squeeze.
+publisher.service.timetric.update.url=https://timetric.com/series
+publisher.service.timetric.apitoken.key=YOURAPIKEY
+publisher.service.timetric.apitoken.secret=YOURSECRET
+#
+# template
+# publisher.service.timetric.series={'sponge.plugins.simplefreshmeat.FreshmeatDotNetDatasource':['votescore','popularity','vitality','subscribers'], 'sponge.plugins.simplegithub.GithubDatasource':['commitcount','watchercount','forkcount', 'collaborators','tagcount','branchcount','issuecount','lastcommit'], 'sponge.plugins.simpleseomindshare.SEOMindshareDatasource':['googlepagerank','googlebacklinks','googlesearchtermhits','yahooinlinks','yahoosearchtermhits','alexarank','alexainlinks','bingsearchtermhits']}
+publisher.service.timetric.series={'sponge.plugins.simplefreshmeat.FreshmeatDotNetDatasource':['cT3n0jGFSYWwS5UQbXvlWw','bdb10YFeSA-rQkNEVD1rUA','jkcr87sbSCi6ljtPpqhreg','G0qd26SdR8CIr22DntLxZw'], 'sponge.plugins.simplegithub.GithubDatasource':['lWRq-BDnTpq2iP9ja3Zbzw','MozfM456RZSM0PHNmBIf7A','YdNlaiCsSuCbO92hmwtVqQ', 'NrH2tX3jSXeHPG2OttcPAQ','gKtHfKnMTLWaYgNJXG4Hlw','h2DgV8yBRbG2hWWCT7TGwA','O5jZFCtFSx-Yi_nO3yZofA','4lPgMjoxTpG8OJvK57Jz5A'], 'sponge.plugins.simpleseomindshare.SEOMindshareDatasource':['GUSnemsUQDi2pEpB7jWFxA','L2J3dcn_Sx6HcjznBAqcrw','QSzi4V2UTxycfgqB1Te59w','eR1VIXfhS3qE9U1gC-ftpA','Un-i7E6gRluHnuk7nAV9ng','_SitPRwYQWavwH-Al35ahg','ghIi75ItQV-rSmyZ4OQLPw','7p7k8ZqbTwGWeSjSE2NtDQ']}
+ooglesearchtermhits','yahooinlinks','yahoosearchtermhits','alexarank','alexainlinks','bingsearchtermhits']}
+
 
 
 #
@@ -88,5 +129,3 @@ backingstore.backup.uri=XXX TODO Decide how to handle backup of your backing sto
 #  XXX Need to implement
 report.output.text.file=spongesitereport.txt
 report.output.stdout=TRUE
-
-

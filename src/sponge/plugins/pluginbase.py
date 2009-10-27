@@ -36,6 +36,8 @@ abstract.  Develop a concrete implementation of this class, and add an
 associated plugin into the conf file for your project.  This class cannot
 be used directly.
 
+XXX TODO: Document, define in docs the expected return types, purpose
+
 Inspired by implementation of markupbase.ParserBase.py in 2.5
 
 """

@@ -142,6 +142,7 @@ class dictdbTests(unittest.TestCase):
         t['foo'] = 1
         t['foo2'] = 2
         t['foo3'] = 3
+        print t
         t.close()
 if __name__ == '__main__':
     unittest.main() # From within the IDE or from the shell, we'll run tests automatically

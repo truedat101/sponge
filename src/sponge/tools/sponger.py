@@ -54,16 +54,19 @@ import getopt
 import types
 import new
 import datetime
+import urllib2
+from sponge.utils import wscaptain
 from sponge.utils.dictdb import dbopen
 from sponge.utils.dictdb import dbexists
-class Sponger:
 
+class Sponger:
     spongeProjectEnv = {}
     spongeDatasourceEnv = {}
     spongeReportEnv = {}
     spongeBackingstoreEnv = {}
     spongeDatasourcePlugins = {}
     envFile = 0 # XXX Will I ever need this again after init?  I don't plan to modify the *Env
+    baseDir = os.path.abspath(os.curdir) # The current work dir on execution
 
     def __init__(self):
         print "sponger is sponging...scrub scrub soak soak"
@@ -89,6 +92,8 @@ class Sponger:
                        self.spongeProjectEnv[line[0]] = line[1].rstrip()
                     elif line[0].find("backingstore") > -1:
                        self.spongeProjectEnv[line[0]] = line[1].rstrip()
+                    elif line[0].find("publisher") > -1:
+                       self.spongeProjectEnv[line[0]] = line[1].rstrip() # XXX: Probably want to put this into a different dict
                     else:
                        # print "Ignoring env property %s" % line
                        None
@@ -111,6 +116,7 @@ class Sponger:
             # rather than continue trying to load the other plugins.  If you intend to load a
             # plugin, don't ignore errors loading the plugin.  XXX For now, use this approach
             # And revisit after major debugging is done
+
             for aKey in self.spongeDatasourceEnv.keys():
                 if aKey.find("pluginclassname") > -1:
                     pluginclassname = self.spongeDatasourceEnv.get(aKey).rstrip()
@@ -130,6 +136,7 @@ class Sponger:
             # and only fail with exit if there are no plugins available
             # even if plugins don't work, they should return error info to stderr/stdout
             # and should not commit results to backing store if any plugin fails.
+            # XXX: TODO Need to see if I actually honor this
             #
             # Example Plugin init: plugin = GithubDatasourcePlugin()
             #          self.spongeDatasourcePlugins['GithubDatasourcePlugin':plugin]
@@ -158,12 +165,13 @@ class Sponger:
                 # plugins
                 # For now, inline each approach
                 #
-                import csv
-
                 #
-                # Method 1
+                # import csv
+                #
+                # Persist Method 1
                 # Persist to a .csv with results in row records, human readable
                 # This yields one .csv per Plugin
+                # This is better for crunching data on a single sheet
                 isNewDB = False
                 if (dbexists(dbname + ".csv") is not True):
                     isNewDB = True
@@ -182,7 +190,7 @@ class Sponger:
                 fdb.close()
 
                 #
-                # Method 2
+                # Persist Method 2
                 # For each series, put into a separate csv file
                 # format should be
                 # ISO DateTime Data, row data
@@ -200,9 +208,92 @@ class Sponger:
                     db.close()
                 print rowResults # XXX Debug
                 print fooPlugin # XXX Debug
+            os.chdir(self.baseDir) # Do this to get back to our original working directory
         else:
             print "Couldn't load any plugins for datasources, exiting"
             sys.exit(1)
+
+    def squeeze(self):
+        if (len(self.spongeDatasourcePlugins) > 0): # Check for existence of data source plugins
+            fooPlugin = 0
+            #
+            # Here we will define the concept of a publisher.  A publisher is an abstraction for any
+            # site, service, or component that handles the publication of data in a way that it can be
+            # accessed, consumed, and understood by interested and authorized parties.  Our publisher
+            # model is only conceptual at the moment, but we will define the concepts now.  We will not
+            # define what ways data can be accessed, consumed, or understood.  We will discuss the concepts
+            # for each of these action verbs.
+            #
+            # Publishers can make data accessible by exposing it over a network, typically published
+            # on a web page or via a programatic web service interface.
+            #
+            # Publishers can allow data to be consumed, by making it possible for interested parties to
+            # export the data as it has been published.  In other words, if I publish a data series, my
+            # publisher should not only allow you to view the data, but also pull or export the data
+            # as I have published it, and use it for other purposes.
+            #
+            # Publishers present data in such a way that it can be understood.  The best way to do this
+            # is to provide the data a graphical representation, a bar graph, line graph, or some other
+            # form of graph to best represent your data.  For analytics data, we probably care most about
+            # data over time.  If graphics are not practical, then presenting summary data that has
+            # been analyzed, with highlights, or more
+            #
+            #
+            #
+            # Process data sources
+            # 0. Setup the HTTP Basic Authentication for the timetric web service
+            # 1. Loop through the existing data sources, and attempt to find all of the .csv backingstores.
+            # 2. get the datasource metadata
+            # 3. push the existing data series store in the default backing store (currently .csv files) into
+            # a publisher.
+            # 4. email me when the complete set of data series have been uploaded. XXX: TODO: change how
+            # to handle this notification so this is pluggable.
+            #
+            wsCaptain = wscaptain.WSCaptain()
+
+            publisherURL = self.spongeProjectEnv['publisher.service.timetric.update.url']
+            apitokenKey = self.spongeProjectEnv['publisher.service.timetric.apitoken.key']
+            apitokenSecret = self.spongeProjectEnv['publisher.service.timetric.apitoken.secret']
+            seriesDict = eval(self.spongeProjectEnv['publisher.service.timetric.series'])
+
+            # XXX: I need to verify if the authentication actually worked and avoid publishing if it did not + report error
+            anOpener = wsCaptain.createHTTPBasicAuthenticationOpenerContext(apitokenKey, apitokenSecret, publisherURL)
+
+            for datasourceKey in self.spongeDatasourcePlugins.keys():
+                datasource = self.spongeDatasourcePlugins[datasourceKey]
+                fooPlugin = new.instance(datasource)
+                fooPlugin.__init__(self.spongeProjectEnv)
+                # We only want the datasource metadata, not to soak data from the datasources.
+                ds_col_labels = fooPlugin.get_datasource_metadata()
+                dbname = datasourceKey
+                os.chdir(self.spongeProjectEnv['project.db.dir'])
+
+                for col in ds_col_labels.keys(): # XXX What is the best way to iterate over the values?
+                    label = ds_col_labels[col][0]
+                    dbcsv = dbname + "." + label + ".csv"
+                    if (dbexists(dbcsv) is True):
+                        db = dbopen(dbcsv, flag='c', format='csv')
+                        if (db is not None):
+                            seriesID = seriesDict[datasourceKey][col-1]
+                            seriesURL = publisherURL + "/" + seriesID + "/"
+                            print "Publishing " + dbcsv + " to URL = " + seriesURL
+                            headers = {'Content-Type':'text/csv'}
+                            data = ""
+                            for key in db:
+                                data = data + key + "," + db[key] + "\r\n"
+                            request = wsCaptain.createRequest(seriesURL, data, headers)
+                            try:
+                                response = urllib2.urlopen(request)
+                            except urllib2.HTTPError, e:
+                                print e
+                            page = wsCaptain.openPage(seriesURL)
+                        else:
+                            print "Couldn't open DB name = " + dbcsv
+                        db.close()
+                    else:
+                        # Do this if you can't find the actual .csv source file
+                        print "Skipping publish of " + dbcsv
+            os.chdir(self.baseDir) # Do this to get back to our original working directory
 
     def dynamicModuleImport(self, modulename):
         if modulename is not None:
@@ -236,10 +327,35 @@ class spongerTests(unittest.TestCase):
     def testInitEnv(self):
         count = self.aSponger.initEnv("../../../examples/spongesite.conf")
         print "# of props read=%d" % (count)
-        self.assert_(count == 38)
+        self.assert_(count == 42)
+    def testPublisher(self):
+        self.aSponger.initEnv("../../../examples/spongesite.conf")
+        publisherURL = self.aSponger.spongeProjectEnv['publisher.service.timetric.update.url']
+        self.assert_(publisherURL is not None)
+        apitokenKey = self.aSponger.spongeProjectEnv['publisher.service.timetric.apitoken.key']
+        self.assert_(apitokenKey is not None)
+        apitokenSecret = self.aSponger.spongeProjectEnv['publisher.service.timetric.apitoken.secret']
+        self.assert_(apitokenSecret is not None)
+        seriesDict = eval(self.aSponger.spongeProjectEnv['publisher.service.timetric.series'])
+        self.assert_(seriesDict)
+        print seriesDict
+        seriesList = seriesDict['sponge.plugins.simplefreshmeat.FreshmeatDotNetDatasource']
+        self.assert_(seriesList is not None)
+        print seriesList
+        self.assert_(len(seriesList) == 4)
+        wsCaptain = wscaptain.WSCaptain()
+        anOpener = wsCaptain.createHTTPBasicAuthenticationOpenerContext(apitokenKey, apitokenSecret, publisherURL)
+        self.assert_(anOpener is not None)
+        seriesURL = publisherURL + "/bdb10YFeSA-rQkNEVD1rUA/"
+        page = wsCaptain.openPage(seriesURL)
+        self.assert_(page is not None)
+
     def testSoak(self):
         self.aSponger.initEnv("../../../examples/spongesite.conf")
         self.aSponger.soak()
+    def testSqueeze(self):
+        self.aSponger.initEnv("../../../examples/spongesite.conf")
+        self.aSponger.squeeze()
     def tearDown(self):
         print "tearing down"
 if __name__ == '__main__':

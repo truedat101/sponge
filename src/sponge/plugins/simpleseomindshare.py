@@ -117,14 +117,14 @@ class SEOMindshareDatasource(pluginbase.PluginBase):
     def get_plugin_metadata(self):
         return {'guid':3,'name':'SEOPagerankDatasource', 'license':'bsd 3-clause'}
     def get_datasource_metadata(self):
-        return {'field' + repr(1):['googlepagerank', 'integer'],
-                'field' + repr(2):['googlebacklinks','integer'],
-                'field' + repr(3):['googlesearchtermhits', 'integer'],
-                'field' + repr(4):['yahooinlinks', 'integer'],
-                'field' + repr(5):['yahoosearchtermhits', 'integer'],
-                'field' + repr(6):['alexarank', 'integer'],
-                'field' + repr(7):['alexainlinks', 'integer'],
-                'field' + repr(8):['bingsearchtermhits', 'integer'],
+        return {1:['googlepagerank', 'integer'],
+                2:['googlebacklinks','integer'],
+                3:['googlesearchtermhits', 'integer'],
+                4:['yahooinlinks', 'integer'],
+                5:['yahoosearchtermhits', 'integer'],
+                6:['alexarank', 'integer'],
+                7:['alexainlinks', 'integer'],
+                8:['bingsearchtermhits', 'integer']
                 }
 
     def fetch_data(self, plugindict):

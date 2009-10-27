@@ -81,11 +81,16 @@ class FreshmeatDotNetDatasource(pluginbase.PluginBase):
     def get_plugin_metadata(self):
         return {'guid':2,'name':'FreshmetDotNetDatasource', 'license':'bsd 3-clause'}
     def get_datasource_metadata(self):
-        return {'field' + repr(1):['votescore', 'integer'],
-                'field' + repr(2):['popularity','float'],
-                'field' + repr(3):['vitality', 'float'],
-                'field' + repr(4):['subscribers', 'integer'],
-                }
+        return {1:['votescore', 'integer'],
+                2:['popularity','float'],
+                3:['vitality', 'float'],
+                4:['subscribers', 'integer']
+        }
+#        return {'field' + repr(1):['votescore', 'integer'],
+#                'field' + repr(2):['popularity','float'],
+#                'field' + repr(3):['vitality', 'float'],
+#                'field' + repr(4):['subscribers', 'integer'],
+#                }
     def fetch_data(self, plugindict):
         #
         #
