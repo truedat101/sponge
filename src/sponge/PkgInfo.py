@@ -1,5 +1,5 @@
 package = "sponge"
-version = "0.1.4"
+version = "0.1.6"
 url = "http://github.com/truedat101/sponge/tree/master"
 license = "BSD License"
 short_description = "Sponge makes it easy to track your Open Source Project Vitality"

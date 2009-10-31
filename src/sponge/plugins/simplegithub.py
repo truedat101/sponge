@@ -119,12 +119,20 @@ class GithubDatasource(pluginbase.PluginBase):
             githubApiURI = plugindict.get('datasource.github.api.uri')
         os.chdir(self.workDir)
         #
+        # Double check to see if the previous work was not cleaned
+        # and remove the directory first
+        if os.access(self.workDir + "/githubdatasource.git", os.R_OK):
+            self.removeDirUtil(self.workDir + "/githubdatasource.git")
+            os.rmdir(self.workDir + "/githubdatasource.git")
+
+        #
         # field1 - commitcount
         #
         # Could probably use github api, it was worth the effort to
         # do a local clone so we have a general way to query a git
         # repo
-        print "about to run %s %s %s" %(self.binPath, gitcloneurl, self.workDir)
+        #
+        print "about to run %s %s %s" %(self.binPath + "/git", gitcloneurl, self.workDir)
         subprocess.check_call([self.binPath + "/git", "clone", gitcloneurl, self.workDir + "/githubdatasource.git"])
         os.chdir(self.workDir + "/githubdatasource.git")
         subprocess.check_call(self.binPath + "/git rev-list --all --reverse 2>&1 | wc -l >" + self.workDir + "/githubdatasource.git/gitcommits.out", shell=True)
@@ -206,12 +214,16 @@ class GithubDatasource(pluginbase.PluginBase):
     def removeDirUtil(self, top):
         # Only do the cleanup inside of the workDir
         if top.find(self.workDir) > -1:
-            print "Blowing away working dir " + self.workDir
+            print "Blowing away working dir " + self.workDir + "/" + top
             for root, dirs, files in os.walk(top, topdown=False):
                 for name in files:
                     os.remove(os.path.join(root, name))
                 for name in dirs:
-                    os.rmdir(os.path.join(root, name))
+                    joinedpath = os.path.join(root, name)
+                    if os.path.islink(joinedpath):
+                        os.remove(joinedpath)
+                    else:
+                        os.rmdir(joinedpath)
 
 class githubDatasourcePluginTests(unittest.TestCase):
     aSponger = 0
