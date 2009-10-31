@@ -278,12 +278,10 @@ class SEOMindshareDatasource(pluginbase.PluginBase):
         self.dataDict['bingsearchtermhits'] = str(bingsearchtermhitsCount)
 
         #
-        # query 7 - alexarank
+        # query 7 - alexarank XXX BUG: Need to coerce the string result to in
         #
         alexaquery = plugindict.get('datasource.seomindshare.alexa.query.1')
         apirooturl = plugindict.get('datasource.seomindshare.alexa.api.root.uri') + alexaquery
-        # query = plugindict.get('datasource.seomindshare.alexa.query.1')
-        # querydata = self.urlencode_query_string(query)
 
         cj = cookielib.CookieJar()
         opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
@@ -296,10 +294,11 @@ class SEOMindshareDatasource(pluginbase.PluginBase):
         if resultCountIndex > -1:
             alexarank = rawHTML[resultCountIndex + 45:string.find(rawHTML, "<", resultCountIndex + 45)]
         print "alexarank found " + alexarank
-        self.dataDict['alexarank'] = str(alexarank)
+        strtoint = string.split(alexarank, ',')
+        self.dataDict['alexarank'] = string.atoi(strtoint[0] + strtoint[1])
 
         #
-        # query 8 - alexainlinks
+        # query 8 - alexainlinks XXX BUG: Need to coerce the string result to in
         #
         # Reuse result for query 7
         alexaquery = string.strip(alexaquery, "www.") # hack to deal with alexa chopping this off in the results page
@@ -308,7 +307,8 @@ class SEOMindshareDatasource(pluginbase.PluginBase):
         if resultCountIndex > -1:
             alexainlinks = rawHTML[resultCountIndex + 2:string.find(rawHTML, "<", resultCountIndex + 2)]
         print "alexainlinks found " + alexainlinks
-        self.dataDict['alexainlinks'] = str(alexainlinks)
+        strtoint = string.split(alexainlinks, ',')
+        self.dataDict['alexainlinks'] = string.atoi(strtoint[0] + strtoint[1])
 
 
         print self.dataDict
