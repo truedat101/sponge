@@ -328,6 +328,15 @@ class spongerTests(unittest.TestCase):
         count = self.aSponger.initEnv("../../../examples/spongesite.conf")
         print "# of props read=%d" % (count)
         self.assert_(count == 42)
+
+    def testSoak(self):
+        self.aSponger.initEnv("../../../examples/spongesite.conf")
+        self.aSponger.soak()
+
+    def testSqueeze(self):
+        self.aSponger.initEnv("../../../examples/spongesite.conf")
+        self.aSponger.squeeze()
+
     def testPublisher(self):
         self.aSponger.initEnv("../../../examples/spongesite.conf")
         publisherURL = self.aSponger.spongeProjectEnv['publisher.service.timetric.update.url']
@@ -350,12 +359,6 @@ class spongerTests(unittest.TestCase):
         page = wsCaptain.openPage(seriesURL)
         self.assert_(page is not None)
 
-    def testSoak(self):
-        self.aSponger.initEnv("../../../examples/spongesite.conf")
-        self.aSponger.soak()
-    def testSqueeze(self):
-        self.aSponger.initEnv("../../../examples/spongesite.conf")
-        self.aSponger.squeeze()
     def tearDown(self):
         print "tearing down"
 if __name__ == '__main__':

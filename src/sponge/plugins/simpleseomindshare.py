@@ -294,8 +294,12 @@ class SEOMindshareDatasource(pluginbase.PluginBase):
         if resultCountIndex > -1:
             alexarank = rawHTML[resultCountIndex + 45:string.find(rawHTML, "<", resultCountIndex + 45)]
         print "alexarank found " + alexarank
-        strtoint = string.split(alexarank, ',')
-        self.dataDict['alexarank'] = string.atoi(strtoint[0] + strtoint[1])
+        if string.upper(alexarank).find("NO DATA") > -1:
+            alexarank = 0
+        elif alexarank.find(",") > -1:
+            strtoint = string.split(alexarank, ',')
+            alexarank = string.atoi(strtoint[0] + strtoint[1])
+        self.dataDict['alexarank'] = str(alexarank)
 
         #
         # query 8 - alexainlinks XXX BUG: Need to coerce the string result to in
@@ -307,9 +311,12 @@ class SEOMindshareDatasource(pluginbase.PluginBase):
         if resultCountIndex > -1:
             alexainlinks = rawHTML[resultCountIndex + 2:string.find(rawHTML, "<", resultCountIndex + 2)]
         print "alexainlinks found " + alexainlinks
-        strtoint = string.split(alexainlinks, ',')
-        self.dataDict['alexainlinks'] = string.atoi(strtoint[0] + strtoint[1])
-
+        if string.upper(alexainlinks).find("NO DATA") >-1:
+            alexainlinks = 0
+        elif alexainlinks.find(",") > -1:
+            strtoint = string.split(alexainlinks, ',')
+            alexainlinks = string.atoi(strtoint[0] + strtoint[1])
+        self.dataDict['alexainlinks'] = str(alexainlinks)
 
         print self.dataDict
         return self.dataDict
