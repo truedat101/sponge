@@ -31,7 +31,7 @@
 #(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 #SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-r"""The idea behind Project Sponge is to provide some tools to measure an OSS project’s
+"""The idea behind Project Sponge is to provide some tools to measure an OSS project’s
 vitality. The concept I will use is similar to an APGAR test when a baby is born. An
 APGAR test checks the vitals several times after the birth (at birth, and then
 throughout the next hour or two of life). For an OSS project, you should be checking
@@ -93,4 +93,4 @@ class SpongePubs:
       #    source has been imported as a
       #    module.
       print "ERROR: Module should be run as a command line"
-      system.exit(2)
+      sys.exit(2)

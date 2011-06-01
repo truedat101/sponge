@@ -38,7 +38,7 @@ The backing store format for the Project Vitality Report is as follows:
 XXX TBD CSV is easiest for out of the box, and can be backed up anywhere as a flat file
 either to git iteself, sqlite, CouchDB, mysql, or simply to local hard drive.
 
-It is expected the Project Vitality Report will be used a website to publish the data
+It is expected the Project Vitality Report will be used on a website to publish the data
 in a graph form for easier visualization.  Something like this should work great:
 http://www.liquidx.net/plotkit/
 There is also Open Flash Charts http://teethgrinder.co.uk/open-flash-chart/  which look
